@@ -1,5 +1,18 @@
+import argparse
 import os
 import re
+
+parser = argparse.ArgumentParser(description="Chapter Splitter")
+
+# Arguments
+parser.add_argument(
+    "bookname",
+    type=str,
+    help="Name of book .txt file",
+)
+
+args = parser.parse_args()
+
 
 def chapter_splitter(book_name):
     text_path = os.path.join('text', f"{book_name}.txt")
@@ -26,4 +39,4 @@ def chapter_splitter(book_name):
         print(f"Created {output_file}.")
 
 # Example usage:
-chapter_splitter('worm')
+chapter_splitter(args.bookname)
