@@ -10,9 +10,9 @@ def get_main_char(dir_path: str, output_dir: str) -> None:
         #     "appearance": [int]  
         # }
     }
-    chapter_coref = {
-        # chap_name : {
-        #     character_chap_id : {
+    chapters_coref = {
+        # chapter_name : {
+        #     character_chapter_id : {
         #         "novel_id" : int,
         #         "count" : int
         #     }
@@ -63,12 +63,12 @@ def get_main_char(dir_path: str, output_dir: str) -> None:
                 'count': character['count']
             }
 
-        chapter_coref[chapter] = chapter_characters
+        chapters_coref[chapter] = chapter_characters
 
     os.makedirs(output_dir, exist_ok=True)
 
     with open(os.path.join(output_dir, 'main_characters.json'), 'w') as file:
         json.dump(main_characters, file, indent=4)
 
-    with open(os.path.join(output_dir, "chapter_coref.json"), 'w') as file:
-        json.dump(chapter_coref, file, indent=4)
+    with open(os.path.join(output_dir, "chapters_coref.json"), 'w') as file:
+        json.dump(chapters_coref, file, indent=4)
