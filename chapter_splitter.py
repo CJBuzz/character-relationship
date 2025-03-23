@@ -10,14 +10,19 @@ parser.add_argument(
     type=str,
     help="Name of book .txt file",
 )
+parser.add_argument(
+    "text_dir",
+    type=str,
+    help="Directory of book file"
+)
 
 args = parser.parse_args()
 
 
-def chapter_splitter(book_name):
-    text_path = os.path.join('text', f"{book_name}.txt")
+def split_chapters(text_dir: str, book_name: str):
+    text_path = os.path.join(text_dir, f"{book_name}.txt")
 
-    os.makedirs(os.path.join('text', book_name), exist_ok=True)
+    os.makedirs(os.path.join(text_dir, book_name), exist_ok=True)
 
     with open(text_path, 'r') as file:
         content = file.read()
@@ -38,5 +43,5 @@ def chapter_splitter(book_name):
 
         print(f"Created {output_file}.")
 
-# Example usage:
-chapter_splitter(args.bookname)
+
+split_chapters(args.text_dir, args.bookname)
