@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def analyse_semantics(
+def analyse_sentiments(
     ner_coref_data_dir: str,
     characters_data_dir: str
 ) -> None:
