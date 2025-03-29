@@ -111,10 +111,6 @@ def get_relevant_sentences_in_chapter(
                 quotes_row = quotes_df.iloc[curr_quotes_row_idx]
 
             speaker = list(speaker)
-            # speaker = list(speaker) if speaker else None
-
-            # if speaker is None and len(characters) < 2: 
-            #     continue
 
             sentence_info['words'].append(sentence)
             sentence_info['start_token_id'].append(start_token_id)
