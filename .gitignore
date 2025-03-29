@@ -175,5 +175,5 @@ cython_debug/
 
 # Data
 text
-output
-temp_files
+booknlp_output
+characters
