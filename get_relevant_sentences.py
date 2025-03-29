@@ -5,6 +5,14 @@ import os
 import pandas as pd
     
 
+def get_consolidated_id(consolidated_indices: dict[str, int], novel_id: int, chapter: str) -> int | None:
+    # NARRATOR Should not appear in these chapters!
+    if novel_id == 0 and ("Interlude" in chapter or "Teneral" in chapter or "Migration" in chapter or "Sentinel" in chapter):
+        return None
+    
+    return consolidated_indices.get(str(novel_id), None)
+
+
 def get_relevant_sentences_in_chapter(
     chapter: str,
     ner_coref_data_dir: str,
@@ -68,7 +76,8 @@ def get_relevant_sentences_in_chapter(
             while entities_row is not None and entities_row['end_token'] <= end_token_id:
                 if entities_row['start_token'] >= start_token_id and entities_row['COREF'] in main_characters_coref:
                     novel_id = chapter_coref[str(entities_row['COREF'])]["novel_id"]
-                    consolidated_id = consolidated_indices.get(str(novel_id), None)
+
+                    consolidated_id = get_consolidated_id(consolidated_indices, novel_id, chapter)
                     if consolidated_id is not None:
                         characters.add(int(consolidated_id))
                 
@@ -87,7 +96,7 @@ def get_relevant_sentences_in_chapter(
             )):
                 if quotes_row['char_id'] in main_characters_coref:
                     novel_id = chapter_coref[str(int(quotes_row['char_id']))]["novel_id"]
-                    consolidated_id = consolidated_indices.get(str(novel_id), None)
+                    consolidated_id = get_consolidated_id(consolidated_indices, novel_id, chapter)
                     if consolidated_id is not None:
                         speaker.add(int(consolidated_id))
 
@@ -101,10 +110,11 @@ def get_relevant_sentences_in_chapter(
                 
                 quotes_row = quotes_df.iloc[curr_quotes_row_idx]
 
-            speaker = list(speaker) if speaker else None
+            speaker = list(speaker)
+            # speaker = list(speaker) if speaker else None
 
-            if speaker is None and len(characters) < 2: 
-                continue
+            # if speaker is None and len(characters) < 2: 
+            #     continue
 
             sentence_info['words'].append(sentence)
             sentence_info['start_token_id'].append(start_token_id)
