@@ -79,7 +79,7 @@ const displayGraph = (
     const seed = Math.random()
 
     const options = {
-        height: `${window.innerHeight-20}px`,
+        height: `${Math.max(300, window.innerHeight-20)}px`,
         edges: {
             smooth: {
                 type: 'continuous',
@@ -137,11 +137,20 @@ const displayGraph = (
     const container = document.getElementById('graph');
     const data = { nodes: nodes, edges: edges };
     const graph = new vis.Network(container, data, options);
+
+    window.addEventListener('resize', () => {
+        const height = `${Math.max(300, window.innerHeight-20)}px`;
+        const width = `100%`;
+
+        graph.setSize(width, height);
+        graph.redraw();
+    });
 }
 
 const init = async() => {
     const [nodes_arr, edges_arr] = await loadData()
     displayGraph(nodes_arr, edges_arr, 0.01, null)
+
 }
 
 init()
