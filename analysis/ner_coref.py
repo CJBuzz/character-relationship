@@ -4,29 +4,6 @@ import os
 from booknlp.booknlp import BookNLP
 
 
-parser = argparse.ArgumentParser(description="BookNLP")
-
-# Arguments
-parser.add_argument(
-    "-i",
-    "--input",
-    type=str,
-    help="Input directory",
-    required=False,
-    default="text"
-)
-parser.add_argument(
-    "-o",
-    "--output",
-    type=str,
-    help="Output directory",
-    required=False,
-    default="output"
-)
-
-args = parser.parse_args()
-
-
 def run_ner_coref(text_dir: str, output_dir_book: str) -> None:
     model_params = {
             "pipeline":"entity,quote,coref", 
@@ -51,4 +28,27 @@ def run_ner_coref(text_dir: str, output_dir_book: str) -> None:
         print(f"Completed {chapter_name}")
 
 
-run_ner_coref(args.input, args.output)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="BookNLP")
+
+    # Arguments
+    parser.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        help="Input directory",
+        required=False,
+        default="text"
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        help="Output directory",
+        required=False,
+        default="output"
+    )
+
+    args = parser.parse_args()
+
+    run_ner_coref(args.input, args.output)

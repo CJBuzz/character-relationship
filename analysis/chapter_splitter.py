@@ -2,23 +2,6 @@ import argparse
 import os
 import re
 
-parser = argparse.ArgumentParser(description="Chapter Splitter")
-
-# Arguments
-parser.add_argument(
-    "bookname",
-    type=str,
-    help="Name of book .txt file",
-)
-parser.add_argument(
-    "text_dir",
-    type=str,
-    help="Directory of book file"
-)
-
-args = parser.parse_args()
-
-
 def split_chapters(text_dir: str, book_name: str):
     text_path = os.path.join(text_dir, f"{book_name}.txt")
 
@@ -44,4 +27,21 @@ def split_chapters(text_dir: str, book_name: str):
         print(f"Created {output_file}.")
 
 
-split_chapters(args.text_dir, args.bookname)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Chapter Splitter")
+
+    # Arguments
+    parser.add_argument(
+        "bookname",
+        type=str,
+        help="Name of book .txt file",
+    )
+    parser.add_argument(
+        "text_dir",
+        type=str,
+        help="Directory of book file"
+    )
+
+    args = parser.parse_args()
+
+    split_chapters(args.text_dir, args.bookname)
