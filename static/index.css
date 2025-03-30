@@ -1,0 +1,19 @@
+:root {
+    --color-background: #000000;
+    --color-primary: rgba(255,212,43,1);
+    --color-primarydark: rgba(170,140,30,1);
+    --color-secondary: #eeeeee;
+}
+
+body {
+    height: 100 vh;
+    width: 100 vw;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-secondary);
+}
+
+#graph {
+    width: 100%;
+    height: 100%;
+}
