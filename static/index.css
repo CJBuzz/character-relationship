@@ -1,5 +1,6 @@
 :root {
     --color-background: #000000;
+    --color-background2: #303030;
     --color-primary: rgba(255,212,43,1);
     --color-primarydark: rgba(170,140,30,1);
     --color-secondary: #eeeeee;
@@ -16,4 +17,192 @@ body {
 #graph {
     width: 100%;
     height: 100%;
+}
+
+.menu-container {
+    position: fixed;
+    top: 2em;
+    left: 1.5em;
+    border-radius: 0.5em;
+    background: var(--color-background2);
+    transition: top 0.3s ease, left 0.3s ease, padding 0.3s ease, border-radius 0.3s ease;
+
+    --color-unselected: #363636;
+    --color-selected: #242424;
+    --color-foregroundUnselected: #909090;
+}
+
+.menu-container.open {
+    top: 1.5em;
+    left: 1em;
+    padding: 0.5em;
+    border-radius: 1em;
+    width: 250px;
+}
+
+.menu-button {
+    background: var(--color-background2);
+    border: none;
+    border-radius: 0.2em;
+    cursor: pointer;
+    padding: 0.6em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 2.6em;
+    height: 2.6em;
+    transition: transform 0.3s ease;
+}
+
+.menu-container > :nth-child(n+2) {
+    display: none;
+}
+
+.menu-container.open > :nth-child(n+3) {
+    display: block;
+}
+
+.bar {
+    width: 100%;
+    height: 0.2em;
+    border-radius: 0.2em;
+    background-color: var(--color-secondary);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+  
+.bar1 {
+    transform-origin: top left;
+}
+  
+.bar2 {
+    transform-origin: center;
+}
+  
+.bar3 {
+    transform-origin: bottom right;
+}
+  
+.menu-button.open .bar1 {
+    transform: rotate(90deg) translateY(-0.2em);
+}
+  
+.menu-button.open .bar2 {
+    transform: rotate(90deg);
+}
+  
+.menu-button.open .bar3 {
+    transform: rotate(90deg) translateY(0.2em);
+}  
+
+.menu-container.open .menu-container-div {
+    display: flex;
+    margin-top: 1em;
+    margin-left: 1em;
+}
+
+.menu-container div input[type='radio'] {
+    display: none;
+}
+
+.menu-container div label:first-of-type {
+    border-right: 2px solid var(--color-foregroundUnselected);
+}
+
+.menu-container div label:first-of-type span {
+    border-radius: 0.3em 0em 0em 0.3em;
+}
+
+.menu-container div label:nth-of-type(2) span {
+    border-radius: 0em 0.3em 0.3em 0em;
+}
+
+.menu-container div label {
+    padding: 0em;
+    height: 1.5em;
+    width: 1.5em;
+    font-size: 1.5em;
+    font-weight: bolder;
+    color: var(--color-foregroundUnselected);
+    text-align: center;
+}
+
+.menu-container div label span {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.menu-container div input[type='radio'] + span {
+    background-color: var(--color-unselected);
+}
+
+.menu-container div input[type='radio']:checked + span {
+    background-color: var(--color-selected);
+    color: var(--color-secondary)
+}
+
+.value-display {
+    margin: 0.15em 0em 0em 1em;
+    font-size: 1.2em;
+}
+
+.interactions-filter {
+    margin: auto;
+    margin-top: 1em;
+    appearance: none;
+    background-color: transparent;
+    border-radius: 1em;
+    transition: background 0.3s ease;
+    width: 15em;
+}
+
+.interactions-filter::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 1.5em;
+    height: 1.5em;
+    background-color: var(--color-primarydark);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.interactions-filter::-moz-range-thumb {
+    width: 1.5em;
+    height: 1.5em;
+    background-color: var(--color-primarydark);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.interactions-filter::-webkit-slider-runnable-track {
+    background: var(--color-secondary);
+    border-radius: 0.75em;
+}
+
+.interactions-filter::-moz-range-track {
+    background-color: var(--color-secondary);
+    height:0.2em;
+}
+
+.interactions-filter::-moz-range-progress {
+    background-color: var(--color-primary);
+    height:0.5em;
+    border-radius: 0.4em 0em 0em 0.4em;
+}
+
+.submit-button {
+    margin: 1em auto 1em auto;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    background-color: var(--color-unselected);
+    color: var(--color-foregroundUnselected);
+    border: none
+}
+
+.submit-button:hover {
+    background-color: var(--color-selected);
+    color: var(--color-secondary)
 }

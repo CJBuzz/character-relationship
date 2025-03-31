@@ -147,11 +147,67 @@ const displayGraph = (
     });
 }
 
+
+const changeRangeSliderAttributes = (rangeSliderEl, sliderOptions, valueDisplayEl, isPercentage) => {
+    rangeSliderEl.min = sliderOptions.min[isPercentage]
+    rangeSliderEl.max = sliderOptions.max[isPercentage]
+    rangeSliderEl.step = sliderOptions.step[isPercentage]
+    rangeSliderEl.title = sliderOptions.title[isPercentage]
+    rangeSliderEl.value = sliderOptions.value[isPercentage]
+    valueDisplayEl.innerHTML = isPercentage ? `${(rangeSliderEl.value * 100).toFixed(1)}%`: rangeSliderEl.value
+}
+
 const init = async() => {
     const [nodes_arr, edges_arr] = await loadData()
-    displayGraph(nodes_arr, edges_arr, 0.01, null)
-
+    displayGraph(nodes_arr, edges_arr, 5, null)
 }
 
 init()
 
+document.addEventListener('DOMContentLoaded', () => {
+    const menuContainerEl = document.getElementById('menuContainer')
+
+    document.getElementById('menuBtn').addEventListener('click', (e) => {
+        e.currentTarget.classList.toggle('open');
+        menuContainerEl.classList.toggle('open')
+
+    });
+
+    const sliderOptions = {
+        min: [1, 0.01],
+        max: [50, 0.10],
+        step: [1, 0.002],
+        value: [5, 0.02],
+        title: [
+            "Minimum number of interactions for edge to be shown",
+            "Minimum percentage of interactions (with respect to more prominent character) for edge to be shown"
+        ]
+    }
+
+    const percentageRadioEl = document.getElementById('percentage')
+    const numericRadioEl = document.getElementById('numeric')
+    const rangeSliderEl = document.getElementById('interactionsFilter')
+    const valueDisplayEl = document.getElementById('filterValue')
+
+    percentageRadioEl.addEventListener('change', (e) => {
+        changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 1)
+    })
+    numericRadioEl.addEventListener('change', (e) => {
+        changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 0)
+    })
+    
+    changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 0)
+
+    rangeSliderEl.addEventListener('input', (e) => {
+        const isPercentage = Number(percentageRadioEl.checked)
+
+        valueDisplayEl.innerHTML = isPercentage ? `${(e.currentTarget.value * 100).toFixed(1)}%`: e.currentTarget.value
+        sliderOptions.value[isPercentage] = e.currentTarget.value
+    }) 
+
+    const submitBtnEl = document.getElementById('submitBtn')
+
+    submitBtnEl.addEventListener('click', (e) => {
+        displayGraph(nodes_arr, edges_arr, rangeSliderEl.value, null)
+    })
+});
