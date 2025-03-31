@@ -23,12 +23,15 @@ body {
     position: fixed;
     top: 2em;
     left: 1.5em;
+    width: 2em;
+    height: 2em;
     border-radius: 0.5em;
     background: var(--color-background2);
-    transition: top 0.3s ease, left 0.3s ease, padding 0.3s ease, border-radius 0.3s ease;
+    transition: top 0.3s ease, left 0.3s ease, padding 0.3s ease, border-radius 0.3s ease, width 0.3s ease, height 0.3s ease;
 
-    --color-unselected: #363636;
-    --color-selected: #242424;
+    --color-inputUnselected: #363636;
+    --color-inputSelected: #242424;
+    --color-inputHover: #333333;
     --color-foregroundUnselected: #909090;
 }
 
@@ -38,6 +41,7 @@ body {
     padding: 0.5em;
     border-radius: 1em;
     width: 250px;
+    height: 180px;
 }
 
 .menu-button {
@@ -51,15 +55,18 @@ body {
     justify-content: space-between;
     width: 2.6em;
     height: 2.6em;
-    transition: transform 0.3s ease;
 }
 
 .menu-container > :nth-child(n+2) {
-    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s, visibility 0s 0.3s;
 }
 
-.menu-container.open > :nth-child(n+3) {
-    display: block;
+.menu-container.open > :nth-child(n+2) {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s, visibility 0s 0s;
 }
 
 .bar {
@@ -67,7 +74,7 @@ body {
     height: 0.2em;
     border-radius: 0.2em;
     background-color: var(--color-secondary);
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition: transform 0.3s ease;
 }
   
 .bar1 {
@@ -94,10 +101,10 @@ body {
     transform: rotate(90deg) translateY(0.2em);
 }  
 
-.menu-container.open .menu-container-div {
+.menu-container .menu-container-div {
     display: flex;
     margin-top: 1em;
-    margin-left: 1em;
+    margin-left: 1.5em;
 }
 
 .menu-container div input[type='radio'] {
@@ -124,6 +131,7 @@ body {
     font-weight: bolder;
     color: var(--color-foregroundUnselected);
     text-align: center;
+    cursor: pointer;
 }
 
 .menu-container div label span {
@@ -133,11 +141,16 @@ body {
 }
 
 .menu-container div input[type='radio'] + span {
-    background-color: var(--color-unselected);
+    background-color: var(--color-inputUnselected);
+}
+
+.menu-container div input[type='radio']:hover + span {
+    background-color: var(--color-inputHover);
+    color: var(--color-secondary)
 }
 
 .menu-container div input[type='radio']:checked + span {
-    background-color: var(--color-selected);
+    background-color: var(--color-inputSelected);
     color: var(--color-secondary)
 }
 
@@ -147,6 +160,7 @@ body {
 }
 
 .interactions-filter {
+    display: block;
     margin: auto;
     margin-top: 1em;
     appearance: none;
@@ -184,25 +198,32 @@ body {
 
 .interactions-filter::-moz-range-track {
     background-color: var(--color-secondary);
-    height:0.2em;
+    height: 0.2em;
 }
 
 .interactions-filter::-moz-range-progress {
     background-color: var(--color-primary);
-    height:0.5em;
+    height: 0.5em;
     border-radius: 0.4em 0em 0em 0.4em;
 }
 
 .submit-button {
+    display: block;
     margin: 1em auto 1em auto;
     padding: 0.5em;
     border-radius: 0.5em;
-    background-color: var(--color-unselected);
+    background-color: var(--color-inputUnselected);
     color: var(--color-foregroundUnselected);
-    border: none
+    border: none;
+    cursor: pointer;
 }
 
 .submit-button:hover {
-    background-color: var(--color-selected);
+    background-color: var(--color-inputHover);
     color: var(--color-secondary)
+}
+
+.submit-button:active {
+    background-color: var(--color-inputSelected);
+    color: var(--color-secondary);
 }
