@@ -76,7 +76,7 @@ class CharacterNetwork {
                 // }
             },
             layout: {
-                randomSeed: seed,
+                randomSeed: seed, // 0.7216629891520017
             }
         };
 
