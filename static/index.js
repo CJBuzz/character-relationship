@@ -7,7 +7,7 @@ const fetchJSON = async (url) => {
         return await res.json()
 
     } catch(error) {
-        console.error("Error fetching main_characters.json", error)
+        console.error("Error fetching character_names.json", error)
         return null
 
     }
@@ -84,16 +84,16 @@ class CharacterNetwork {
     }
 
     loadData = async () => {
-        const main_characters_arr = await fetchJSON("static/main_characters.json")
+        const character_names_arr = await fetchJSON("static/character_names.json")
         const interactions_arr = await fetchJSON("static/interactions.json")
     
         const num_interactions_per_char = interactions_arr.map(arr => arr.reduce((sum, el) => el ? sum + el[1] : sum, 0))
     
-        this.nodesArr = main_characters_arr.map((name, idx) => ({id: idx, label: name}))
+        this.nodesArr = character_names_arr.map((name, idx) => ({id: idx, label: name}))
     
         this.edgesArr = []
-        for (let i = 0; i < main_characters_arr.length - 1; i++) {
-            for (let j = i+1; j < main_characters_arr.length; j++) {
+        for (let i = 0; i < character_names_arr.length - 1; i++) {
+            for (let j = i+1; j < character_names_arr.length; j++) {
                 const num_interactions = interactions_arr[i][j][1] 
     
                 if (!num_interactions) continue
