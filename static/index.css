@@ -103,11 +103,11 @@ body {
 
 .menu-container .menu-container-div {
     display: flex;
-    margin-top: 1em;
-    margin-left: 1.5em;
+    margin: 1em 1.5em 0em 1.5em;
 }
 
-.menu-container div input[type='radio'] {
+.menu-container div input[type='radio'], 
+.menu-container div input[type='checkbox'] {
     display: none;
 }
 
@@ -135,12 +135,18 @@ body {
 }
 
 .menu-container div label span {
-    display: block;
+    display: grid;
+    place-items: center;
     width: 100%;
     height: 100%;
+    border-radius: 0.3em;
+    font-family: Georgia, serif;
+    font-weight: bold;
+    font-style: oblique;
 }
 
-.menu-container div input[type='radio'] + span {
+.menu-container div input[type='radio'] + span,
+.menu-container div input[type='checkbox'] + span {
     background-color: var(--color-inputUnselected);
 }
 
@@ -149,14 +155,23 @@ body {
     color: var(--color-secondary)
 }
 
+.menu-container div input[type='checkbox']:hover + span {
+    color: var(--color-secondary);
+}
+
 .menu-container div input[type='radio']:checked + span {
     background-color: var(--color-inputSelected);
     color: var(--color-secondary)
 }
 
+.menu-container div input[type='checkbox']:checked + span {
+    background-color: var(--color-inputSelected);
+}
+
 .value-display {
-    margin: 0.15em 0em 0em 1em;
+    margin: 0.15em 0.75em 0em 0.75em;
     font-size: 1.2em;
+    width: 3.5em;
 }
 
 .interactions-filter {
