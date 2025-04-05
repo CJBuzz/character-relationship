@@ -15,8 +15,10 @@ const fetchJSON = async (url) => {
 
 class CharacterNetwork {
     constructor() {
-        this.nodesArr = null
-        this.edgesArr = null
+        this.nodesDataView = null
+        this.edgesDataView = null
+
+        this.minInteractions = 0.05
 
         const root = document.documentElement; 
         const styles = getComputedStyle(root); 
@@ -88,10 +90,10 @@ class CharacterNetwork {
         const interactions_arr = await fetchJSON("static/interactions.json")
     
         const num_interactions_per_char = interactions_arr.map(arr => arr.reduce((sum, el) => el ? sum + el[1] : sum, 0))
-    
-        this.nodesArr = character_names_arr.map((name, idx) => ({id: idx, label: name}))
-    
-        this.edgesArr = []
+        
+        const nodesMaxInteractions = Array.from({length: character_names_arr.length}, () => [0, 0])
+
+        const edgesArr = []
         for (let i = 0; i < character_names_arr.length - 1; i++) {
             for (let j = i+1; j < character_names_arr.length; j++) {
                 const num_interactions = interactions_arr[i][j][1] 
@@ -101,61 +103,65 @@ class CharacterNetwork {
                 const closeness_i = num_interactions_per_char[i]/num_interactions
                 const closeness_j = num_interactions_per_char[j]/num_interactions
                 const interaction_score = (closeness_i + closeness_j)**(1/3)
+
+                const percentage_interaction_mean = 1/Math.sqrt(closeness_i*closeness_j) // determined by fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B 
                 
-                this.edgesArr.push({
+                edgesArr.push({
                     from: i, 
                     to: j, 
                     value: num_interactions, // determines thickness
                     length: interaction_score*100, // determines edge length
                     weight: num_interactions,
-                    min_percentage: 1/Math.sqrt(closeness_i*closeness_j), // determined by fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B 
+                    percentage_interaction: percentage_interaction_mean,
                     sentiment: interactions_arr[i][j][0] + interactions_arr[j][i][0] // determines color 
                 })
+
+                nodesMaxInteractions[i][0] = Math.max(nodesMaxInteractions[i][0], num_interactions)
+                nodesMaxInteractions[i][1] = Math.max(nodesMaxInteractions[i][1], percentage_interaction_mean)
+                nodesMaxInteractions[j][0] = Math.max(nodesMaxInteractions[j][0], num_interactions)
+                nodesMaxInteractions[j][1] = Math.max(nodesMaxInteractions[j][1], percentage_interaction_mean)
+
             }
         }
-    }
 
-    filterNodesEdges = (
-        min_interactions, // Can be a decimal between 0 and 1 or an integer. If it is an integer, it represents the minimum number of interactions the edge must have to be shown. If it is between 0 and 1, it represents the minimum fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B for the edge to be shown
-    ) => {
-        const shownNodes = new Set()
-        const filteredEdges = this.edgesArr.filter((edge) => {
-            if (min_interactions < 1) {
-                if (edge.min_percentage < min_interactions) return false
-            }
-            else if (edge.weight < min_interactions) return false
-            shownNodes.add(edge.from)
-            shownNodes.add(edge.to)
-            return true
-        }) 
+        const nodesArr = character_names_arr.map((name, idx) => ({
+                id: idx, 
+                label: name,
+                maxNumInteractions: nodesMaxInteractions[idx][0],
+                maxPercentageInteractions: nodesMaxInteractions[idx][1]
+            }))
 
-        const edgesDataset = new vis.DataSet(filteredEdges)
+        const nodesDataSet = new vis.DataSet(nodesArr)
+        const edgesDataSet = new vis.DataSet(edgesArr)
 
-        const filteredNodes = this.nodesArr.filter((node) => shownNodes.has(node.id))
-        const nodesDataset = new vis.DataSet(filteredNodes)
+        this.nodesDataView = new vis.DataView(nodesDataSet, {
+            filter: (node) => this.minInteractions < 1 ? node.maxPercentageInteractions >= this.minInteractions : node.maxNumInteractions >= this.minInteractions, 
+            fields: ['id', 'label']
+        })
 
-        return [nodesDataset, edgesDataset]
-    }
+        this.edgesDataView = new vis.DataView(edgesDataSet, {
+            filter: (edge) => this.minInteractions < 1 ? edge.percentage_interaction >= this.minInteractions : edge.value >= this.minInteractions
+        })
 
-    displayGraph = (
-        nodesDataset,
-        edgesDataset
-    ) => {
-        const data = {nodes: nodesDataset, edges: edgesDataset}
-
-        if (this.graph) {
-            this.graph.setData(data)
-        } else {
-            const container = document.getElementById('graph');
-            this.graph = new vis.Network(container, data, this.options)
-            window.addEventListener('resize', () => {
-                const height = `${Math.max(300, window.innerHeight-20)}px`;
-                const width = `100%`;
-    
-                this.graph.setSize(width, height);
-                this.graph.redraw();
-            });
+        const data = {
+            nodes: this.nodesDataView,
+            edges: this.edgesDataView
         }
+
+        const container = document.getElementById('graph');
+        this.graph = new vis.Network(container, data, this.options)
+        window.addEventListener('resize', () => {
+            const height = `${Math.max(300, window.innerHeight-20)}px`;
+            const width = `100%`;
+
+            this.graph.setSize(width, height);
+            this.graph.redraw();
+        });
+    }
+
+    refreshGraph = () => {
+        this.nodesDataView.refresh()
+        this.edgesDataView.refresh()
     }
 }
 
@@ -171,8 +177,6 @@ const changeRangeSliderAttributes = (rangeSliderEl, sliderOptions, valueDisplayE
 
 const initGraph = async (cnetwork) => {
     await cnetwork.loadData()
-    const [nodesDataset, edgesDataset] = cnetwork.filterNodesEdges(5)
-    cnetwork.displayGraph(nodesDataset, edgesDataset)
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -191,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         min: [1, 0.002],
         max: [50, 0.10],
         step: [1, 0.002],
-        value: [5, 0.01],
+        value: [5, 0.05],
         title: [
             "Minimum number of interactions for edge to be shown",
             "Minimum percentage of interactions (geometric mean) for edge to be shown"
@@ -220,10 +224,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtnEl = document.getElementById('submitBtn')
 
     submitBtnEl.addEventListener('click', () => {
-        const [nodesDataset, edgesDataset] = cnetwork.filterNodesEdges(rangeSliderEl.value)
-        cnetwork.displayGraph(nodesDataset, edgesDataset)
+        cnetwork.minInteractions = rangeSliderEl.value
+        cnetwork.refreshGraph()
     })
 
-    numericRadioEl.checked = true
-    changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 0)
+    numericRadioEl.checked = false
+    changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 1)
 });
