@@ -108,7 +108,7 @@ class CharacterNetwork {
                     value: num_interactions, // determines thickness
                     length: interaction_score*100, // determines edge length
                     weight: num_interactions,
-                    min_percentage: Math.min(1/closeness_i, 1/closeness_j),
+                    min_percentage: 1/Math.sqrt(closeness_i*closeness_j), // determined by fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B 
                     sentiment: interactions_arr[i][j][0] + interactions_arr[j][i][0] // determines color 
                 })
             }
@@ -116,7 +116,7 @@ class CharacterNetwork {
     }
 
     filterNodesEdges = (
-        min_interactions, // Can be a decimal between 0 and 1 or an integer. If it is an integer, it represents the minimum number of interactions the edge must have to be shown. If it is between 0 and 1, it represents the minimum percentage that the interaction must comprise of when compared to the total number of interactions in the more prominent character for the edge to be shown
+        min_interactions, // Can be a decimal between 0 and 1 or an integer. If it is an integer, it represents the minimum number of interactions the edge must have to be shown. If it is between 0 and 1, it represents the minimum fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B for the edge to be shown
     ) => {
         const shownNodes = new Set()
         const filteredEdges = this.edgesArr.filter((edge) => {
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         value: [5, 0.01],
         title: [
             "Minimum number of interactions for edge to be shown",
-            "Minimum percentage of interactions (with respect to more prominent character) for edge to be shown"
+            "Minimum percentage of interactions (geometric mean) for edge to be shown"
         ]
     }
 
