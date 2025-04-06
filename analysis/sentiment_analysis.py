@@ -59,7 +59,8 @@ def analyse_sentiments(
 
 
 def collate_relations(
-    characters_data_dir: str
+    characters_data_dir: str,
+    deduct_opposing_avg: bool = False,
 ) -> None:
     main_characters_aliases_file_path = os.path.join(characters_data_dir, 'main_characters_aliases.json')
 
@@ -86,7 +87,7 @@ def collate_relations(
                 store[i][j] = None
                 continue
 
-            opposing_avg = char_avgs[j][0]/char_avgs[j][1]
+            opposing_avg = char_avgs[j][0]/char_avgs[j][1] if deduct_opposing_avg else False
             interaction_count = int(np.sum(arr[i][j][1]))
 
             store[i][j][0] = np.sum(arr[i][j][0]) / interaction_count - opposing_avg if interaction_count else 0

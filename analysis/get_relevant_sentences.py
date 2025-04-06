@@ -2,15 +2,20 @@ import csv
 import json
 import os
 
+from typing import Callable
+
 import pandas as pd
     
 
-def get_consolidated_id(consolidated_indices: dict[str, int], novel_id: int, chapter: str) -> int | None:
-    # NARRATOR Should not appear in these chapters!
-    if novel_id == 0 and ("Interlude" in chapter or "Teneral" in chapter or "Migration" in chapter or "Sentinel" in chapter):
-        return None
+def get_consolidated_id(
+    consolidated_indices: dict[str, int],
+    novel_id: int,
+    chapter: str,
+    filter_func: Callable[[int, str, any], bool] | None = None,
+    filter_args: any = None
+) -> int | None:    
     
-    return consolidated_indices.get(str(novel_id), None)
+    return consolidated_indices.get(str(novel_id), None) if filter_func and filter_func(novel_id, chapter, filter_args) else None
 
 
 def get_relevant_sentences_in_chapter(
@@ -18,7 +23,9 @@ def get_relevant_sentences_in_chapter(
     ner_coref_data_dir: str,
     text_dir: str,
     chapters_coref: dict[str, dict[str, dict[str, int]]],
-    consolidated_indices: dict[str, int]
+    consolidated_indices: dict[str, int],
+    filter_func: Callable[[int, str, any], bool] | None = None,
+    filter_args: any = None
 ) -> None:
     
     chapter_dir = os.path.join(ner_coref_data_dir, chapter)
@@ -77,7 +84,7 @@ def get_relevant_sentences_in_chapter(
                 if entities_row['start_token'] >= start_token_id and entities_row['COREF'] in main_characters_coref:
                     novel_id = chapter_coref[str(entities_row['COREF'])]["novel_id"]
 
-                    consolidated_id = get_consolidated_id(consolidated_indices, novel_id, chapter)
+                    consolidated_id = get_consolidated_id(consolidated_indices, novel_id, chapter, filter_func, filter_args)
                     if consolidated_id is not None:
                         characters.add(int(consolidated_id))
                 
@@ -96,7 +103,7 @@ def get_relevant_sentences_in_chapter(
             )):
                 if quotes_row['char_id'] in main_characters_coref:
                     novel_id = chapter_coref[str(int(quotes_row['char_id']))]["novel_id"]
-                    consolidated_id = get_consolidated_id(consolidated_indices, novel_id, chapter)
+                    consolidated_id = get_consolidated_id(consolidated_indices, novel_id, chapter, filter_func, filter_args)
                     if consolidated_id is not None:
                         speaker.add(int(consolidated_id))
 
@@ -128,7 +135,9 @@ def get_relevant_sentences_in_chapter(
 def get_relevant_sentences_in_book(
     ner_coref_data_dir: str,
     text_dir: str,
-    characters_data_dir: str
+    characters_data_dir: str,
+    filter_func: Callable[[int, str, any], bool] | None = None,
+    filter_args: any = None
 ) -> None:
     chapters_coref_file_path = os.path.join(characters_data_dir, 'chapters_coref.json')
 
@@ -152,5 +161,7 @@ def get_relevant_sentences_in_book(
             ner_coref_data_dir,
             text_dir,
             chapters_coref,
-            consolidated_indices
+            consolidated_indices,
+            filter_func,
+            filter_args
         )

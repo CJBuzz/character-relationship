@@ -7,7 +7,7 @@ const fetchJSON = async (url) => {
         return await res.json()
 
     } catch(error) {
-        console.error("Error fetching main_characters.json", error)
+        console.error("Error fetching character_names.json", error)
         return null
 
     }
@@ -15,8 +15,11 @@ const fetchJSON = async (url) => {
 
 class CharacterNetwork {
     constructor() {
-        this.nodesArr = null
-        this.edgesArr = null
+        this.nodesDataView = null
+        this.edgesDataView = null
+
+        this.minInteractions = 0.05
+        this.showSentiments = false
 
         const root = document.documentElement; 
         const styles = getComputedStyle(root); 
@@ -36,6 +39,7 @@ class CharacterNetwork {
                 },
                 color: {
                     color: primaryClrDark,
+                    hover: primaryClr,
                     highlight: secondaryClr
                 }
             },
@@ -50,6 +54,10 @@ class CharacterNetwork {
                 color: {
                     border: primaryClr,
                     background: backgroundClr,
+                    hover: {
+                        border: primaryClr,
+                        background: backgroundClr
+                    },
                     highlight: {
                         border: secondaryClr,
                         background: backgroundClr
@@ -76,24 +84,52 @@ class CharacterNetwork {
                 // }
             },
             layout: {
-                randomSeed: seed,
+                randomSeed: seed, // 0.7216629891520017
+            },
+            interaction: {
+                hover: true
             }
         };
 
         console.log(seed)
+
+        this.rgbRLow = Number(styles.getPropertyValue('--rgb-rlow').trim())
+        this.rgbRHigh = Number(styles.getPropertyValue('--rgb-rhigh').trim())
+        this.rgbGLow = Number(styles.getPropertyValue('--rgb-glow').trim())
+        this.rgbGHigh = Number(styles.getPropertyValue('--rgb-ghigh').trim())
+        this.rgbBLow = Number(styles.getPropertyValue('--rgb-blow').trim())
+        this.rgbBHigh = Number(styles.getPropertyValue('--rgb-bhigh').trim())
+    }
+
+    getClr = (sentiment_score) => {
+        const fraction_from_low = 0.5 + Math.max(-0.5, Math.min(0.5, sentiment_score))
+        
+        return `rgb( \
+            ${Math.round((this.rgbRHigh-this.rgbRLow)*fraction_from_low) + this.rgbRLow}, \
+            ${Math.round((this.rgbGHigh-this.rgbGLow)*fraction_from_low) + this.rgbGLow}, \
+            ${Math.round((this.rgbBHigh-this.rgbBLow)*fraction_from_low) + this.rgbBLow} \
+        )`
+    }
+
+    createLabelEl = (num_interactions, sentiment_score = null, total = false) => {
+        const labelDivEl = document.createElement('div')
+        labelDivEl.innerHTML =  sentiment_score === null ? 
+            `<p>${num_interactions}${total ? " total" : ""} interactions</p>` : 
+            `<p>${num_interactions} interactions</p><p>Sentiment: ${sentiment_score.toFixed(2)}</p>`   
+        return labelDivEl
     }
 
     loadData = async () => {
-        const main_characters_arr = await fetchJSON("static/main_characters.json")
+        const character_names_arr = await fetchJSON("static/character_names.json")
         const interactions_arr = await fetchJSON("static/interactions.json")
     
         const num_interactions_per_char = interactions_arr.map(arr => arr.reduce((sum, el) => el ? sum + el[1] : sum, 0))
-    
-        this.nodesArr = main_characters_arr.map((name, idx) => ({id: idx, label: name}))
-    
-        this.edgesArr = []
-        for (let i = 0; i < main_characters_arr.length - 1; i++) {
-            for (let j = i+1; j < main_characters_arr.length; j++) {
+        
+        const nodesMaxInteractions = Array.from({length: character_names_arr.length}, () => [0, 0])
+
+        const edgesArr = []
+        for (let i = 0; i < character_names_arr.length - 1; i++) {
+            for (let j = i+1; j < character_names_arr.length; j++) {
                 const num_interactions = interactions_arr[i][j][1] 
     
                 if (!num_interactions) continue
@@ -101,61 +137,74 @@ class CharacterNetwork {
                 const closeness_i = num_interactions_per_char[i]/num_interactions
                 const closeness_j = num_interactions_per_char[j]/num_interactions
                 const interaction_score = (closeness_i + closeness_j)**(1/3)
-                
-                this.edgesArr.push({
+
+                const percentage_interaction_mean = 1/Math.sqrt(closeness_i*closeness_j) // determined by fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B 
+                const sentiment = interactions_arr[i][j][0] // Taking value of the more prominent character 
+
+                const edgeObj = {
                     from: i, 
                     to: j, 
                     value: num_interactions, // determines thickness
                     length: interaction_score*100, // determines edge length
                     weight: num_interactions,
-                    min_percentage: Math.min(1/closeness_i, 1/closeness_j),
-                    sentiment: interactions_arr[i][j][0] + interactions_arr[j][i][0] // determines color 
-                })
+                    percentage_interaction: percentage_interaction_mean,
+                    sentiment: sentiment,
+                    title: this.createLabelEl(num_interactions), // for tooltip
+                    color: null
+                }
+
+                const edgeObjClr = {
+                    ...edgeObj,
+                    title: this.createLabelEl(num_interactions, sentiment),
+                    color: this.getClr(sentiment)
+                }
+
+                edgesArr.push(edgeObj)
+                edgesArr.push(edgeObjClr)
+
+                nodesMaxInteractions[i][0] = Math.max(nodesMaxInteractions[i][0], num_interactions)
+                nodesMaxInteractions[i][1] = Math.max(nodesMaxInteractions[i][1], percentage_interaction_mean)
+                nodesMaxInteractions[j][0] = Math.max(nodesMaxInteractions[j][0], num_interactions)
+                nodesMaxInteractions[j][1] = Math.max(nodesMaxInteractions[j][1], percentage_interaction_mean)
+
             }
         }
-    }
 
-    filterNodesEdges = (
-        min_interactions, // Can be a decimal between 0 and 1 or an integer. If it is an integer, it represents the minimum number of interactions the edge must have to be shown. If it is between 0 and 1, it represents the minimum percentage that the interaction must comprise of when compared to the total number of interactions in the more prominent character for the edge to be shown
-    ) => {
-        const shownNodes = new Set()
-        const filteredEdges = this.edgesArr.filter((edge) => {
-            if (min_interactions < 1) {
-                if (edge.min_percentage < min_interactions) return false
-            }
-            else if (edge.weight < min_interactions) return false
-            shownNodes.add(edge.from)
-            shownNodes.add(edge.to)
-            return true
-        }) 
+        const nodesArr = character_names_arr.map((name, idx) => ({
+                id: idx, 
+                label: name,
+                title: this.createLabelEl(num_interactions_per_char[idx], null, true),
+                maxNumInteractions: nodesMaxInteractions[idx][0],
+                maxPercentageInteractions: nodesMaxInteractions[idx][1]
+            }))
 
-        const edgesDataset = new vis.DataSet(filteredEdges)
+        const nodesDataSet = new vis.DataSet(nodesArr)
+        const edgesDataSet = new vis.DataSet(edgesArr)
 
-        const filteredNodes = this.nodesArr.filter((node) => shownNodes.has(node.id))
-        const nodesDataset = new vis.DataSet(filteredNodes)
+        this.nodesDataView = new vis.DataView(nodesDataSet, {
+            filter: (node) => this.minInteractions < 1 ? node.maxPercentageInteractions >= this.minInteractions : node.maxNumInteractions >= this.minInteractions, 
+            fields: ['id', 'label', 'title']
+        })
 
-        return [nodesDataset, edgesDataset]
-    }
+        this.edgesDataView = new vis.DataView(edgesDataSet, {
+            filter: (edge) =>  (this.showSentiments === Boolean(edge.color)) && (this.minInteractions < 1 ? edge.percentage_interaction >= this.minInteractions : edge.value >= this.minInteractions),
+            fields: ['id', 'from', 'to', 'value', 'length', 'weight', 'title', 'color']
+        })
 
-    displayGraph = (
-        nodesDataset,
-        edgesDataset
-    ) => {
-        const data = {nodes: nodesDataset, edges: edgesDataset}
-
-        if (this.graph) {
-            this.graph.setData(data)
-        } else {
-            const container = document.getElementById('graph');
-            this.graph = new vis.Network(container, data, this.options)
-            window.addEventListener('resize', () => {
-                const height = `${Math.max(300, window.innerHeight-20)}px`;
-                const width = `100%`;
-    
-                this.graph.setSize(width, height);
-                this.graph.redraw();
-            });
+        const data = {
+            nodes: this.nodesDataView,
+            edges: this.edgesDataView
         }
+
+        const container = document.getElementById('graph');
+        this.graph = new vis.Network(container, data, this.options)
+        window.addEventListener('resize', () => {
+            const height = `${Math.max(300, window.innerHeight-20)}px`;
+            const width = `100%`;
+
+            this.graph.setSize(width, height);
+            this.graph.redraw();
+        });
     }
 }
 
@@ -171,8 +220,6 @@ const changeRangeSliderAttributes = (rangeSliderEl, sliderOptions, valueDisplayE
 
 const initGraph = async (cnetwork) => {
     await cnetwork.loadData()
-    const [nodesDataset, edgesDataset] = cnetwork.filterNodesEdges(5)
-    cnetwork.displayGraph(nodesDataset, edgesDataset)
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -187,14 +234,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 
+    const sentimentCheckboxEl = document.getElementById('sentiment_checkbox')
+    sentimentCheckboxEl.addEventListener('change', () => {
+        cnetwork.showSentiments = sentimentCheckboxEl.checked
+        cnetwork.edgesDataView.refresh()
+    })
+
     const sliderOptions = {
         min: [1, 0.002],
         max: [50, 0.10],
         step: [1, 0.002],
-        value: [5, 0.01],
+        value: [5, 0.05],
         title: [
             "Minimum number of interactions for edge to be shown",
-            "Minimum percentage of interactions (with respect to more prominent character) for edge to be shown"
+            "Minimum percentage of interactions (geometric mean) for edge to be shown"
         ]
     }
 
@@ -203,27 +256,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const rangeSliderEl = document.getElementById('interactionsFilter')
     const valueDisplayEl = document.getElementById('filterValue')
 
-    percentageRadioEl.addEventListener('change', (e) => {
+    percentageRadioEl.addEventListener('change', () => {
         changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 1)
     })
-    numericRadioEl.addEventListener('change', (e) => {
+    numericRadioEl.addEventListener('change', () => {
         changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 0)
     })
 
-    rangeSliderEl.addEventListener('input', (e) => {
+    rangeSliderEl.addEventListener('input', () => {
         const isPercentage = Number(percentageRadioEl.checked)
 
-        valueDisplayEl.innerHTML = isPercentage ? `${(e.currentTarget.value * 100).toFixed(1)}%`: e.currentTarget.value
-        sliderOptions.value[isPercentage] = e.currentTarget.value
+        valueDisplayEl.innerHTML = isPercentage ? `${(rangeSliderEl.value * 100).toFixed(1)}%`: rangeSliderEl.value
+        sliderOptions.value[isPercentage] = rangeSliderEl.value
     }) 
 
     const submitBtnEl = document.getElementById('submitBtn')
 
     submitBtnEl.addEventListener('click', () => {
-        const [nodesDataset, edgesDataset] = cnetwork.filterNodesEdges(rangeSliderEl.value)
-        cnetwork.displayGraph(nodesDataset, edgesDataset)
+        cnetwork.minInteractions = rangeSliderEl.value
+        cnetwork.edgesDataView.refresh()
+        cnetwork.nodesDataView.refresh()
     })
 
-    numericRadioEl.checked = true
-    changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 0)
+
+    // Setting Defaults
+    sentimentCheckboxEl.checked = false
+    percentageRadioEl.checked = true
+    changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 1)
 });
