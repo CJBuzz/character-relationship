@@ -4,6 +4,12 @@
     --color-primary: rgba(255,212,43,1);
     --color-primarydark: rgba(170,140,30,1);
     --color-secondary: #eeeeee;
+    --rgb-rlow: 220;
+    --rgb-rhigh: 120;
+    --rgb-glow: 120;
+    --rgb-ghigh: 220;
+    --rgb-blow: 42;
+    --rgb-bhigh: 42;
 }
 
 body {

@@ -19,6 +19,7 @@ class CharacterNetwork {
         this.edgesDataView = null
 
         this.minInteractions = 0.05
+        this.showSentiments = false
 
         const root = document.documentElement; 
         const styles = getComputedStyle(root); 
@@ -38,6 +39,7 @@ class CharacterNetwork {
                 },
                 color: {
                     color: primaryClrDark,
+                    hover: primaryClr,
                     highlight: secondaryClr
                 }
             },
@@ -52,6 +54,10 @@ class CharacterNetwork {
                 color: {
                     border: primaryClr,
                     background: backgroundClr,
+                    hover: {
+                        border: primaryClr,
+                        background: backgroundClr
+                    },
                     highlight: {
                         border: secondaryClr,
                         background: backgroundClr
@@ -79,10 +85,30 @@ class CharacterNetwork {
             },
             layout: {
                 randomSeed: seed, // 0.7216629891520017
+            },
+            interaction: {
+                hover: true
             }
         };
 
         console.log(seed)
+
+        this.rgbRLow = Number(styles.getPropertyValue('--rgb-rlow').trim())
+        this.rgbRHigh = Number(styles.getPropertyValue('--rgb-rhigh').trim())
+        this.rgbGLow = Number(styles.getPropertyValue('--rgb-glow').trim())
+        this.rgbGHigh = Number(styles.getPropertyValue('--rgb-ghigh').trim())
+        this.rgbBLow = Number(styles.getPropertyValue('--rgb-blow').trim())
+        this.rgbBHigh = Number(styles.getPropertyValue('--rgb-bhigh').trim())
+    }
+
+    getClr = (sentiment_score) => {
+        const fraction_from_low = 0.5 + Math.max(-0.5, Math.min(0.5, sentiment_score))
+        
+        return `rgb( \
+            ${Math.round((this.rgbRHigh-this.rgbRLow)*fraction_from_low) + this.rgbRLow}, \
+            ${Math.round((this.rgbGHigh-this.rgbGLow)*fraction_from_low) + this.rgbGLow}, \
+            ${Math.round((this.rgbBHigh-this.rgbBLow)*fraction_from_low) + this.rgbBLow} \
+        )`
     }
 
     loadData = async () => {
@@ -105,16 +131,26 @@ class CharacterNetwork {
                 const interaction_score = (closeness_i + closeness_j)**(1/3)
 
                 const percentage_interaction_mean = 1/Math.sqrt(closeness_i*closeness_j) // determined by fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B 
-                
-                edgesArr.push({
+                const sentiment = interactions_arr[i][j][0] // Taking value of the more prominent character
+
+                const edgeObj = {
                     from: i, 
                     to: j, 
                     value: num_interactions, // determines thickness
                     length: interaction_score*100, // determines edge length
                     weight: num_interactions,
                     percentage_interaction: percentage_interaction_mean,
-                    sentiment: interactions_arr[i][j][0] + interactions_arr[j][i][0] // determines color 
-                })
+                    sentiment: sentiment,
+                    color: null
+                }
+
+                const edgeObjClr = {
+                    ...edgeObj,
+                    color: this.getClr(sentiment)
+                }
+
+                edgesArr.push(edgeObj)
+                edgesArr.push(edgeObjClr)
 
                 nodesMaxInteractions[i][0] = Math.max(nodesMaxInteractions[i][0], num_interactions)
                 nodesMaxInteractions[i][1] = Math.max(nodesMaxInteractions[i][1], percentage_interaction_mean)
@@ -140,7 +176,8 @@ class CharacterNetwork {
         })
 
         this.edgesDataView = new vis.DataView(edgesDataSet, {
-            filter: (edge) => this.minInteractions < 1 ? edge.percentage_interaction >= this.minInteractions : edge.value >= this.minInteractions
+            filter: (edge) =>  (this.showSentiments === Boolean(edge.color)) && (this.minInteractions < 1 ? edge.percentage_interaction >= this.minInteractions : edge.value >= this.minInteractions),
+            fields: ['id', 'from', 'to', 'value', 'length', 'weight', 'color']
         })
 
         const data = {
@@ -157,11 +194,6 @@ class CharacterNetwork {
             this.graph.setSize(width, height);
             this.graph.redraw();
         });
-    }
-
-    refreshGraph = () => {
-        this.nodesDataView.refresh()
-        this.edgesDataView.refresh()
     }
 }
 
@@ -191,6 +223,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 
+    const sentimentCheckboxEl = document.getElementById('sentiment_checkbox')
+    sentimentCheckboxEl.addEventListener('change', () => {
+        cnetwork.showSentiments = sentimentCheckboxEl.checked
+        cnetwork.edgesDataView.refresh()
+    })
+
     const sliderOptions = {
         min: [1, 0.002],
         max: [50, 0.10],
@@ -207,27 +245,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const rangeSliderEl = document.getElementById('interactionsFilter')
     const valueDisplayEl = document.getElementById('filterValue')
 
-    percentageRadioEl.addEventListener('change', (e) => {
+    percentageRadioEl.addEventListener('change', () => {
         changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 1)
     })
-    numericRadioEl.addEventListener('change', (e) => {
+    numericRadioEl.addEventListener('change', () => {
         changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 0)
     })
 
-    rangeSliderEl.addEventListener('input', (e) => {
+    rangeSliderEl.addEventListener('input', () => {
         const isPercentage = Number(percentageRadioEl.checked)
 
-        valueDisplayEl.innerHTML = isPercentage ? `${(e.currentTarget.value * 100).toFixed(1)}%`: e.currentTarget.value
-        sliderOptions.value[isPercentage] = e.currentTarget.value
+        valueDisplayEl.innerHTML = isPercentage ? `${(rangeSliderEl.value * 100).toFixed(1)}%`: rangeSliderEl.value
+        sliderOptions.value[isPercentage] = rangeSliderEl.value
     }) 
 
     const submitBtnEl = document.getElementById('submitBtn')
 
     submitBtnEl.addEventListener('click', () => {
         cnetwork.minInteractions = rangeSliderEl.value
-        cnetwork.refreshGraph()
+        cnetwork.edgesDataView.refresh()
+        cnetwork.nodesDataView.refresh()
     })
 
-    numericRadioEl.checked = false
+
+    // Setting Defaults
+    sentimentCheckboxEl.checked = false
+    percentageRadioEl.checked = true
     changeRangeSliderAttributes(rangeSliderEl, sliderOptions, valueDisplayEl, 1)
 });
