@@ -25,6 +25,14 @@ body {
     height: 100%;
 }
 
+.vis-network .vis-tooltip {
+    background-color: var(--color-background2);
+    color: var(--color-secondary);
+    border: none;
+    border-radius: 1em;
+    padding: 0em 0.7em 0em 0.7em;
+}
+
 .menu-container {
     position: fixed;
     top: 2em;

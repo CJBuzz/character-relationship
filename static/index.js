@@ -111,6 +111,14 @@ class CharacterNetwork {
         )`
     }
 
+    createLabelEl = (num_interactions, sentiment_score = null) => {
+        const labelDivEl = document.createElement('div')
+        labelDivEl.innerHTML =  sentiment_score === null ? 
+            `<p>${num_interactions} interactions</p>` : 
+            `<p>${num_interactions} interactions</p><p>Sentiment: ${sentiment_score.toFixed(2)}</p>`   
+        return labelDivEl
+    }
+
     loadData = async () => {
         const character_names_arr = await fetchJSON("static/character_names.json")
         const interactions_arr = await fetchJSON("static/interactions.json")
@@ -131,7 +139,7 @@ class CharacterNetwork {
                 const interaction_score = (closeness_i + closeness_j)**(1/3)
 
                 const percentage_interaction_mean = 1/Math.sqrt(closeness_i*closeness_j) // determined by fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B 
-                const sentiment = interactions_arr[i][j][0] // Taking value of the more prominent character
+                const sentiment = interactions_arr[i][j][0] // Taking value of the more prominent character 
 
                 const edgeObj = {
                     from: i, 
@@ -141,11 +149,13 @@ class CharacterNetwork {
                     weight: num_interactions,
                     percentage_interaction: percentage_interaction_mean,
                     sentiment: sentiment,
+                    title: this.createLabelEl(num_interactions),
                     color: null
                 }
 
                 const edgeObjClr = {
                     ...edgeObj,
+                    title: this.createLabelEl(num_interactions, sentiment),
                     color: this.getClr(sentiment)
                 }
 
@@ -177,7 +187,7 @@ class CharacterNetwork {
 
         this.edgesDataView = new vis.DataView(edgesDataSet, {
             filter: (edge) =>  (this.showSentiments === Boolean(edge.color)) && (this.minInteractions < 1 ? edge.percentage_interaction >= this.minInteractions : edge.value >= this.minInteractions),
-            fields: ['id', 'from', 'to', 'value', 'length', 'weight', 'color']
+            fields: ['id', 'from', 'to', 'value', 'length', 'weight', 'title', 'color']
         })
 
         const data = {
