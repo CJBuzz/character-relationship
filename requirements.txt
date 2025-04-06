@@ -1,0 +1,2 @@
+booknlp==1.0.8
+afinn==0.1
