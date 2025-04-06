@@ -111,10 +111,10 @@ class CharacterNetwork {
         )`
     }
 
-    createLabelEl = (num_interactions, sentiment_score = null) => {
+    createLabelEl = (num_interactions, sentiment_score = null, total = false) => {
         const labelDivEl = document.createElement('div')
         labelDivEl.innerHTML =  sentiment_score === null ? 
-            `<p>${num_interactions} interactions</p>` : 
+            `<p>${num_interactions}${total ? " total" : ""} interactions</p>` : 
             `<p>${num_interactions} interactions</p><p>Sentiment: ${sentiment_score.toFixed(2)}</p>`   
         return labelDivEl
     }
@@ -149,7 +149,7 @@ class CharacterNetwork {
                     weight: num_interactions,
                     percentage_interaction: percentage_interaction_mean,
                     sentiment: sentiment,
-                    title: this.createLabelEl(num_interactions),
+                    title: this.createLabelEl(num_interactions), // for tooltip
                     color: null
                 }
 
@@ -173,6 +173,7 @@ class CharacterNetwork {
         const nodesArr = character_names_arr.map((name, idx) => ({
                 id: idx, 
                 label: name,
+                title: this.createLabelEl(num_interactions_per_char[idx], null, true),
                 maxNumInteractions: nodesMaxInteractions[idx][0],
                 maxPercentageInteractions: nodesMaxInteractions[idx][1]
             }))
@@ -182,7 +183,7 @@ class CharacterNetwork {
 
         this.nodesDataView = new vis.DataView(nodesDataSet, {
             filter: (node) => this.minInteractions < 1 ? node.maxPercentageInteractions >= this.minInteractions : node.maxNumInteractions >= this.minInteractions, 
-            fields: ['id', 'label']
+            fields: ['id', 'label', 'title']
         })
 
         this.edgesDataView = new vis.DataView(edgesDataSet, {
