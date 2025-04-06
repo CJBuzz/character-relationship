@@ -177,3 +177,6 @@ cython_debug/
 text
 booknlp_output
 characters
+
+# Testing Files
+test.ipynb
