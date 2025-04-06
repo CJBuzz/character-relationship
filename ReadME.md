@@ -28,7 +28,9 @@ Analyse character relationships using NLP involves the following 3 steps:
 
 [BookNLP](https://github.com/booknlp/booknlp) was used for Named Entity Recognition (NER) and Coreference Resolution while [AFINN](https://github.com/fnielsen/afinn) was used for Sentiment Analysis.  
 
+
 ## Methodology
+
 
 #### 1. Named Entity Recognition
 
@@ -37,6 +39,7 @@ Named Entity Recognition (NER) involves recognising proper nouns, common nouns a
 > That she was calling Sophia her best friend?
 
 In this case, the NER model is expected to pick up 'she' (pronoun), 'Sophia' (proper noun), 'her' (pronoun) and 'best friend' (common noun). 
+
 
 #### 2. Coreference Resolution
 
@@ -47,6 +50,7 @@ In this project, NER and coreference resolution were not conducted on 1 sentence
 By using NER and coreference resolution, the characters mentioned in each sentence can be kept track of. If 2 or more characters are mentioned in a sentence, every pair of characters involved was counted to have 1 interaction. For the example sentence, the interaction count between 'Emma' and 'Sophia' would increase by 1.
 
 If a sentence mentions 3 characters A, B and C, the interaction counts between A and B, B and C, and A and C would all increase by 1.
+
 
 #### 3. Sentiment Analysis
 
@@ -59,6 +63,7 @@ Indeed, AFINN, the sentiment analysis library that was used, classfies the sente
 as having a positive sentiment with a score of 1.0. As such 1.0 will be added to the sentiment score between the characters 'Emma' and 'Sophia'.
 
 Similarly, if a sentence mentions 3 characters A, B and C, the sentiment score of the sentence will be added to all the sentiment scores between A and B, B and C, and A and C.
+
 
 #### Measures
 
@@ -76,6 +81,7 @@ By dividing the total sentiment score between characters A and B with the number
 
 In this project a further step was taken that involved adjusting the sentiment score between 2 characters by accounting for the average sentiment of both characters (based on all the interactions they are involved in). The idea that if character A is a generally nasty person who is antagonistic to almost everyone, and that if their sentiment score with character B is hostile (negative) but less so than average, the eventual metric should reflect this relatively friendly relationship. It appears that this adjustment more accurately reflects the friendliness/hostility between characters for *Worm*, but whether it is generally better is not conclusive and users can skip this step should they wish.
 
+
 #### Workflow
 
 The full methodology to obtain the number of interactions and the sentiment scores between every pair of major characters (~100 of them) is found in [this notebook](./workflow.ipynb). 
@@ -83,9 +89,11 @@ The full methodology to obtain the number of interactions and the sentiment scor
 Do note that as *Worm* is a very long text, it was split into chapters before being NER was conducted by BookNLP (due to memory limitations). Afterwards, several additional steps were required to match characters between chapters.
 
 
+
 ## Results
 
 The results of the above steps can be found in the file `interactions.json` in the `static` directory. It stores a 2 dimensional array of the form `arr[i][j]`. `i` and `j` are indices that represent a character whose name can be found in the file `character_names.json` (it stores another list - match the index to find the name). The value of `arr[i][j]` is either an array of length 2 or `null` (if `i == j`). If `i != j`, `arr[i][j][0]` stores the total number of interactions between character `i` and `j` while `arr[i][j][1]` stores the sentiment score.
+
 
 #### Web Page
 
@@ -94,9 +102,11 @@ This results are displayed in an interactive graph in this [page](https://cjbuzz
 The width of the edge between 2 nodes reflects the number of interactions between the respective characters. The length of the edge reflects the importance of that relationship to the characters
 
 The length is calculated as follows:
-$$
+
+```math
 L = 100 \times \sqrt[3]{\frac{T_{i}}{n_{ij}} + \frac{T_{j}}{n_{ij}}}
-$$
+```
+
 where $n_{ij}$ represents the number of interactions between characters `i` and `j`, $T_{i}$ represents the total number of interactions involving character `i` and $T_{j}$ represents tht toal number of interactions involving character `j`. The graph is arranged using the `repulsion` solver by `Vis.js`.
 
 By default, the less important edges are not shown. This can be changed in the menu (top-left corner). By adjusting the minimum number of interactions or minimum percentage of interactions, more or less edges will be shown on the graph.
@@ -104,15 +114,20 @@ By default, the less important edges are not shown. This can be changed in the m
 If a node has no connected edges, it will not be shown.
 
 The minimum percentage of interactions takes into account both characters involved. It is calculated as follows:
-$$
+
+```math
 P = 100\% \times \frac{n_{ij}}{\sqrt{T_{i} \times T_{j}}} 
-$$
+```
 
 The sentiment score is also not reflected by default. By toggling the 'S' button in the menu, the colour of the edges can be changed to reflect the score. Greener shades represent friendlier relationships while redder shades show more hostile relationships.
+
+
 
 ## Discussion
 
 > This section is not completed. Apologies!
+
+
 
 ## Acknowledgements
 
