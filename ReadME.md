@@ -17,7 +17,7 @@ This project attempts to use Natural Language Processing techniques to analyse c
 
 Ideally, the results should achieve these 2 goals:
 
-- Accurately reflect the prominence of a character in the the story and how importtant a character is with respect to another character. 
+- Accurately reflect the prominence of a character in the the story and how important a character is with respect to another character. 
 - Accurately reflect the degree of friendliness or hostility in the relationship between a pair of characters.  
 
 Analyse character relationships using NLP involves the following 3 steps:
@@ -38,16 +38,16 @@ Named Entity Recognition (NER) involves recognising proper nouns, common nouns a
 
 > That she was calling Sophia her best friend?
 
-In this case, the NER model is expected to pick up 'she' (pronoun), 'Sophia' (proper noun), 'her' (pronoun) and 'best friend' (common noun). 
+In this case, the NER model is expected to pick up '*she*' (pronoun), '*Sophia*' (proper noun), '*her*' (pronoun) and '*best friend*' (common noun). 
 
 
 #### 2. Coreference Resolution
 
-Coreference resolution involves finding all mentions in a text that refer to the same entity. Using the above sentence, the coreference resolution model should conclude that 'she' and 'her' both refer to one character, while 'Sophia' and 'best friend' both refer to another.
+Coreference resolution involves finding all mentions in a text that refer to the same entity. Using the above sentence, the coreference resolution model should conclude that 'she' and 'her' both refer to one character, while '*Sophia*' and '*best friend*' both refer to another.
 
-In this project, NER and coreference resolution were not conducted on 1 sentence at a time. Instead, a sizable chunk of the text, (a chapter in this case) was analysed together. In the above sentence, 'she' would be resolved as the character 'Emma', who was mentioned in another sentence. 
+In this project, NER and coreference resolution were not conducted on 1 sentence at a time. Instead, a sizable chunk of the text, (a chapter in this case) was analysed together. In the above sentence, '*she*' would be resolved as the character '*Emma*', who was mentioned in another sentence. 
 
-By using NER and coreference resolution, the characters mentioned in each sentence can be kept track of. If 2 or more characters are mentioned in a sentence, every pair of characters involved was counted to have 1 interaction. For the example sentence, the interaction count between 'Emma' and 'Sophia' would increase by 1.
+By using NER and coreference resolution, the characters mentioned in each sentence can be kept track of. If 2 or more characters are mentioned in a sentence, every pair of characters involved was counted to have 1 interaction. For the example sentence, the interaction count between '*Emma*' and '*Sophia*' would increase by 1.
 
 If a sentence mentions 3 characters A, B and C, the interaction counts between A and B, B and C, and A and C would all increase by 1.
 
@@ -60,7 +60,7 @@ Indeed, AFINN, the sentiment analysis library that was used, classfies the sente
  
 > That she was calling Sophia her best friend?
 
-as having a positive sentiment with a score of 1.0. As such 1.0 will be added to the sentiment score between the characters 'Emma' and 'Sophia'.
+as having a positive sentiment with a score of 1.0. As such 1.0 will be added to the sentiment score between the characters '*Emma*' and '*Sophia*'.
 
 Similarly, if a sentence mentions 3 characters A, B and C, the sentiment score of the sentence will be added to all the sentiment scores between A and B, B and C, and A and C.
 
@@ -125,7 +125,37 @@ The sentiment score is also not reflected by default. By toggling the 'S' button
 
 ## Discussion
 
-> This section is not completed. Apologies!
+
+#### Evaluating Named Entity Recognition and Coreference Resolution
+
+BookNLP's named entity recognition and coreference resolution models performed satisfactorily as the interactions count between 2 characters generally capture the important of that relationship in a story. The most prominent characters such as the *Skitter* and *Tattletale* have the largest number of total interactions. The network graph rendered on the webpage show in-story teams such as *The Travellers* and *Faultline's Crew* having significant intra-group connections and places members of the group near each other. While the interaction counts are not manually compared, it appears to approximately match their in-story significance.
+
+Nevertheless, some notable mistakes were made. *Worm* is largely written in first person perspective and BookNLP correctly identifies the narrator as an entity. However, the interludes and several arcs (notably *Sentinel*, *Migration* and *Teneral*) that is instead written in third person perspective. These chapters do not feature the narrator, though her other names and aliases such as Taylor, Skitter and Weaver might make an appearance. In some of these chapters, BookNLP incorrectly recognises the "narrator" entity. These are caught and removed in the project but indicates the possibility of further mistakes in NER and coreference resolution.
+
+In addition, coreference resolution would be complicated if 2 or more characters share the same name. This is less of a problem in *Worm* as characters generally have distinct names but could be an issue in other works. In *One Hundred Years of Solitude*, there are multiple characters named *Aureliano* and *José Arcadio*. BookNLP and other coreference resolution tools would likely resolve them as a single character. 
+
+
+#### Evaluating Sentiment Analysis
+
+Unfortunately, the sentiment analysis methodology used in this project does not end up with results that seem to accurately reflect the friendliness or hostility in the relationship between 2 characters. Among *The Travellers*, *Perdition* and *Trickster* have the most antagonistic relationship within the group. However, *Perdition*'s sentiment score with *Trickster* is the second most positive when compared to his score with the rest of the team! This is clearly incongruous with the in-story group dynamics. 
+
+Similarly, *Bitch* of the *Undersiders* may be a bit anti-social but otherwise gets along reasonably well with her teammates. However, she has very negative sentiment scores with the rest of her teammates.
+
+There are certainly scores that do reflect the relationship in the story. However, the presence of so several scores that evidently do not align with their portrayal makes this method of limited effectiveness in measuring friendliness or hostility in the interactions between characters.
+
+---
+
+A possible reason could be sentiment analysis tools such as **AFINN** and **TextBlob** not being able to account for contextual information as they adopt a lexicon and rule-based approach. This involves mapping a list of words to their respective sentiment score. In a text, the sentiment score of each word is aggregated to determine the text's sentiment. This does not account for textual context.
+
+Consider this sentence:
+
+> Sophia would be there, and I could just imagine her smug smile of satisfaction as I showed up looking like I’d botched an attempt to tie-dye everything I owned.
+
+Reading the sentence, one can conclude that the relationship between *Sophia* and the narrator is antagonistic,, as *Sophia* is happy ("smug smile of satisfaction") when the narrator fails ("botched an attempt"). However, AFINN grades this sentence with a positive score of 4.0.
+
+When the sentiment score of each word is analysed, it turns out that the positive score is due to the words "smile" and "like", each with a score of 2.0. Taken individually, those 2 words do have positive connotations, with the assumption that "like" is used as a verb (e.g. "I like Person A"). In this sentence, "like" is instead used as a prepositional, which has a different meaning to how it is used as a verb. "Smile", normally seen in positive context, appears here to show how one character delights in another's failure - a sign of hostility rather than friendliness. With an inability to consider context, errors such as these could result in sentiment scores that are unrepresentative of the actual relationships between characters.
+
+To account for textual context, larger transformer-based language models can be considered.  
 
 
 

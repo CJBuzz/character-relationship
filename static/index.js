@@ -139,7 +139,7 @@ class CharacterNetwork {
                 const interaction_score = (closeness_i + closeness_j)**(1/3)
 
                 const percentage_interaction_mean = 1/Math.sqrt(closeness_i*closeness_j) // determined by fraction of interactions between characters A and B to the geometric mean of the total interactions of A and total interactions of B 
-                const sentiment = interactions_arr[i][j][0] // Taking value of the more prominent character 
+                const sentiment = interactions_arr[i][j][0] + interactions_arr[j][i][0] 
 
                 const edgeObj = {
                     from: i, 
