@@ -1,5 +1,6 @@
 import json
 import os
+import string
 
 from afinn import Afinn
 import numpy as np
@@ -26,6 +27,8 @@ def analyse_sentiments(
 
     afinn = Afinn()
 
+    placeholders = list(string.ascii_uppercase)
+
     for chapter in tqdm(os.listdir(ner_coref_data_dir)):
         chapter_num = int(chapter.split('-')[1]) - 1
         relevant_sentences_file_path = os.path.join(ner_coref_data_dir, chapter, 'relevant_sentences.csv')
@@ -34,8 +37,16 @@ def analyse_sentiments(
         df['Sentiment'] = 0.0
 
         for idx, row in df.iterrows():
+            sentence = row['words']
+            
+            sorted_propn_pos = json.loads(row['proper_nouns_pos'])
+            sorted_propn_pos.sort(key = lambda x: x[1], reverse = True)
+
+            for idx, (start_pos, end_pos) in enumerate(sorted_propn_pos):
+                sentence = sentence[:start_pos] + placeholders[idx%26] + sentence[end_pos:]
+            
             sentiment = afinn.score(row['words'])
-            df.loc[idx, 'Sentiment'] = sentiment         
+            df.loc[idx, 'Sentiment'] = sentiment
         
         for idx, row in df.iterrows():
             char_list = set(json.loads(row['characters']) + (json.loads(row['speaker']) if type(row['speaker']) is str else []))

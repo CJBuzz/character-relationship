@@ -46,7 +46,8 @@ def get_relevant_sentences_in_chapter(
         "start_token_id": [],
         "end_token_id": [],
         "speaker": [],
-        "characters": []
+        "characters": [],
+        "proper_nouns_pos": []
     }
 
     num_paragraphs = int(tokens_df.iloc[-1]["paragraph_ID"])
@@ -79,6 +80,7 @@ def get_relevant_sentences_in_chapter(
 
             characters = set()
             speaker = set()
+            proper_nouns_pos = []
             
             while entities_row is not None and entities_row['end_token'] <= end_token_id:
                 if entities_row['start_token'] >= start_token_id and entities_row['COREF'] in main_characters_coref:
@@ -117,6 +119,10 @@ def get_relevant_sentences_in_chapter(
                 
                 quotes_row = quotes_df.iloc[curr_quotes_row_idx]
 
+            for idx, row in sentence_df.iterrows():
+                if row['POS_tag'] == "PROPN":
+                    proper_nouns_pos.append([row['byte_onset']-byte_onset, row['byte_offset']-byte_onset])
+
             speaker = list(speaker)
 
             sentence_info['words'].append(sentence)
@@ -124,6 +130,7 @@ def get_relevant_sentences_in_chapter(
             sentence_info['end_token_id'].append(end_token_id)
             sentence_info['characters'].append(list(characters))
             sentence_info['speaker'].append(speaker)
+            sentence_info['proper_nouns_pos'].append(proper_nouns_pos)
 
     relevant_sentences_df = pd.DataFrame.from_dict(sentence_info)
     relevant_sentences_csv_fp = os.path.join(chapter_dir, 'relevant_sentences.csv')
