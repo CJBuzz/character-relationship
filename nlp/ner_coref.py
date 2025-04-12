@@ -1,10 +1,10 @@
 import argparse
 import os
 
-from booknlp.booknlp import BookNLP
-
 
 def run_ner_coref(text_dir: str, output_dir_book: str) -> None:
+    from booknlp.booknlp import BookNLP
+
     model_params = {
             "pipeline":"entity,quote,coref", 
             "model":"big"
