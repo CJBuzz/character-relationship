@@ -7,6 +7,8 @@ This project attempts to use Natural Language Processing techniques to analyse c
 ## Table of Contents
 
 - [Introduction](#introduction)
+- [Methodology](#methodology)
+- [Results](#results)
 - [Discussion](#discussion)
 - [Acknowledgements](#acknowledgements)
 
@@ -77,9 +79,7 @@ The total interaction count of all relationships that involves character A serve
 
 2. Friendliness & Hostility
 
-By dividing the total sentiment score between characters A and B with the number of interactions between characters A and B, the average sentiment score can be yielded. This average serves as a metric for degree of the friendliness (if score > 0) or hostility (if score < 0) in the relationship.
-
-In this project a further step was taken that involved adjusting the sentiment score between 2 characters by accounting for the average sentiment of both characters (based on all the interactions they are involved in). The idea that if character A is a generally nasty person who is antagonistic to almost everyone, and that if their sentiment score with character B is hostile (negative) but less so than average, the eventual metric should reflect this relatively friendly relationship. It appears that this adjustment more accurately reflects the friendliness/hostility between characters for *Worm*, but whether it is generally better is not conclusive and users can skip this step should they wish.
+By dividing the total sentiment score between characters A and B with the number of interactions between characters A and B, the average sentiment score can be yielded. This average serves as a metric for degree of friendliness (if score > 0) or hostility (if score < 0) in the relationship.
 
 
 #### Workflow
@@ -137,11 +137,9 @@ In addition, coreference resolution would be complicated if 2 or more characters
 
 #### Evaluating Sentiment Analysis
 
-Unfortunately, the sentiment analysis methodology used in this project does not end up with results that seem to accurately reflect the friendliness or hostility in the relationship between 2 characters. Among *The Travellers*, *Perdition* and *Trickster* have the most antagonistic relationship within the group. However, *Perdition*'s sentiment score with *Trickster* is the second most positive when compared to his score with the rest of the team! This is clearly incongruous with the in-story group dynamics. 
+Unfortunately, the sentiment analysis methodology used in this project does not end up with results that seem to accurately reflect the friendliness or hostility in the relationship between 2 characters. *Sierra* has a pretty negative sentiment score with *Skitter* at -0.49. However, their relationship in-story is neutral to slightly positive. Similarly, *Grace* and *Tecton* of the *Chicago Wards* have an inexplicably negative sentiment score despite being teammates. These scores are clearly incongruous with the in-story group dynamics.
 
-Similarly, *Bitch* of the *Undersiders* may be a bit anti-social but otherwise gets along reasonably well with her teammates. However, she has very negative sentiment scores with the rest of her teammates.
-
-There are certainly scores that do reflect the relationship in the story. However, the presence of so several scores that evidently do not align with their portrayal makes this method of limited effectiveness in measuring friendliness or hostility in the interactions between characters.
+There are certainly scores that do reflect the relationship in the story - *Perdition* and *Trickster*, who deeply dislike each other, have the most negative sentiment scores among the travellers. However, the presence of several scores that evidently do not align with their portrayal makes this method of limited effectiveness in measuring friendliness or hostility in the interactions between characters.
 
 ---
 
