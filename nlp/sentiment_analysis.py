@@ -1,16 +1,17 @@
 import json
 import os
-import string
 
-from afinn import Afinn
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from .sentiment_scorer.base_scorer import BaseScorer
+
 
 def analyse_sentiments(
     ner_coref_data_dir: str,
-    characters_data_dir: str
+    characters_data_dir: str,
+    sentiment_scorer: BaseScorer
 ) -> None:
     main_characters_aliases_file_path = os.path.join(characters_data_dir, 'main_characters_aliases.json')
 
@@ -25,10 +26,6 @@ def analyse_sentiments(
 
     relations_arr = np.zeros((num_chars, num_chars, 2, num_chapters))
 
-    afinn = Afinn()
-
-    placeholders = list(string.ascii_uppercase)
-
     for chapter in tqdm(os.listdir(ner_coref_data_dir)):
         chapter_num = int(chapter.split('-')[1]) - 1
         relevant_sentences_file_path = os.path.join(ner_coref_data_dir, chapter, 'relevant_sentences.csv')
@@ -37,17 +34,12 @@ def analyse_sentiments(
         df['Sentiment'] = 0.0
 
         for idx, row in df.iterrows():
-            sentence = row['words']
-            
-            sorted_propn_pos = json.loads(row['proper_nouns_pos'])
-            sorted_propn_pos.sort(key = lambda x: x[1], reverse = True)
+            propn_pos = json.loads(row['proper_nouns_pos'])
+            sentiment = sentiment_scorer.get(row['words'], propn_pos)
 
-            for idx, (start_pos, end_pos) in enumerate(sorted_propn_pos):
-                sentence = sentence[:start_pos] + placeholders[idx%26] + sentence[end_pos:]
-            
-            sentiment = afinn.score(row['words'])
             df.loc[idx, 'Sentiment'] = sentiment
-        
+
+
         for idx, row in df.iterrows():
             char_list = set(json.loads(row['characters']) + (json.loads(row['speaker']) if type(row['speaker']) is str else []))
             if len(char_list) < 2:

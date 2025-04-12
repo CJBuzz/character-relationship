@@ -53,4 +53,3 @@ def consolidate_main_char(dir_path: str) -> None:
 
     with open(os.path.join(dir_path, "consolidated_indices.json"), 'w') as file:
         json.dump(consolidated_indices, file, indent=4)
-

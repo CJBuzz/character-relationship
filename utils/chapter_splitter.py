@@ -2,7 +2,14 @@ import argparse
 import os
 import re
 
-def split_chapters(text_dir: str, book_name: str):
+from typing import Pattern
+
+
+def split_chapters(
+    text_dir: str,
+    book_name: str,
+    delimiter: Pattern = r'\n{6,}'
+):
     text_path = os.path.join(text_dir, f"{book_name}.txt")
 
     os.makedirs(os.path.join(text_dir, book_name), exist_ok=True)
@@ -10,7 +17,7 @@ def split_chapters(text_dir: str, book_name: str):
     with open(text_path, 'r') as file:
         content = file.read()
 
-    sections = re.split(r'\n{6,}', content)
+    sections = re.split(delimiter, content)
 
     for index, section in enumerate(sections):
         lines = section.strip().split('\n')
