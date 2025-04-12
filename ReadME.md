@@ -139,7 +139,7 @@ In addition, coreference resolution would be complicated if 2 or more characters
 
 Unfortunately, the sentiment analysis methodology used in this project does not end up with results that seem to accurately reflect the friendliness or hostility in the relationship between 2 characters. *Sierra* has a pretty negative sentiment score with *Skitter* at -0.49. However, their relationship in-story is neutral to slightly positive. Similarly, *Grace* and *Tecton* of the *Chicago Wards* have an inexplicably negative sentiment score despite being teammates. These scores are clearly incongruous with the in-story group dynamics.
 
-There are certainly scores that do reflect the relationship in the story - *Perdition* and *Trickster*, who deeply dislike each other, have the most negative sentiment scores among the travellers. However, the presence of several scores that evidently do not align with their portrayal makes this method of limited effectiveness in measuring friendliness or hostility in the interactions between characters.
+There are certainly scores that do reflect the relationship in the story - *Skitter* has very negative sentiment scores with her enemies such as *Lung*, *Leviathan*, *Mannequin* and *Jack Slash*. However, the presence of several scores that evidently do not align with their portrayal makes this method of limited effectiveness in measuring friendliness or hostility in the interactions between characters.
 
 ---
 
