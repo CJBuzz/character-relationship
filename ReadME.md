@@ -81,6 +81,8 @@ The total interaction count of all relationships that involves character A serve
 
 By dividing the total sentiment score between characters A and B with the number of interactions between characters A and B, the average sentiment score can be yielded. This average serves as a metric for degree of friendliness (if score > 0) or hostility (if score < 0) in the relationship.
 
+*Worm* is a pretty dark story. As such, the overall sentiment score of the story is likely negative (indeed, the average sentiment per sentence is -0.0782). Therefore, the overall sentiment score of the story is subtracted from the average sentiment score of a relationship to address this skew. In *Worm*'s case, 0.0782 will be added to all relational sentiment scores.
+
 
 #### Workflow
 
@@ -143,7 +145,7 @@ There are certainly scores that do reflect the relationship in the story - *Skit
 
 ---
 
-A possible reason could be sentiment analysis tools such as **AFINN** and **TextBlob** not being able to account for contextual information as they adopt a lexicon and rule-based approach. This involves mapping a list of words to their respective sentiment score. In a text, the sentiment score of each word is aggregated to determine the text's sentiment. This does not account for textual context.
+A possible reason could be sentiment analysis tools such as **AFINN** and **TextBlob** not being take contextual information into consideration as they adopt a lexicon and rule-based approach. This involves mapping a list of words to their respective sentiment score. In a text, the sentiment score of each word is aggregated to determine the text's sentiment. This does not account for textual context.
 
 Consider this sentence:
 
