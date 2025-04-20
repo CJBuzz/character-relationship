@@ -28,8 +28,6 @@ class CharacterNetwork {
         const primaryClrDark = styles.getPropertyValue('--color-primarydark').trim()
         const secondaryClr = styles.getPropertyValue('--color-secondary').trim();
 
-        const seed = Math.random()
-
         this.options = {
             height: `${Math.max(300, window.innerHeight-20)}px`,
             edges: {
@@ -84,14 +82,12 @@ class CharacterNetwork {
                 // }
             },
             layout: {
-                randomSeed: seed, // 0.7216629891520017
+                randomSeed: 0.7216629891520017
             },
             interaction: {
                 hover: true
             }
         };
-
-        console.log(seed)
 
         this.rgbRLow = Number(styles.getPropertyValue('--rgb-rlow').trim())
         this.rgbRHigh = Number(styles.getPropertyValue('--rgb-rhigh').trim())
@@ -209,6 +205,13 @@ class CharacterNetwork {
 }
 
 
+const adjustSliderProgress = (rangeSliderEl, sliderOptions, isPercentage) => {
+    const sliderPercentage = `${Math.round((sliderOptions.value[isPercentage] - sliderOptions.min[isPercentage])/(sliderOptions.max[isPercentage] - sliderOptions.min[isPercentage])*100)}%`
+
+    rangeSliderEl.style.setProperty('--slider-progress', sliderPercentage)
+}
+
+
 const changeRangeSliderAttributes = (rangeSliderEl, sliderOptions, valueDisplayEl, isPercentage) => {
     rangeSliderEl.min = sliderOptions.min[isPercentage]
     rangeSliderEl.max = sliderOptions.max[isPercentage]
@@ -216,6 +219,8 @@ const changeRangeSliderAttributes = (rangeSliderEl, sliderOptions, valueDisplayE
     rangeSliderEl.title = sliderOptions.title[isPercentage]
     rangeSliderEl.value = sliderOptions.value[isPercentage]
     valueDisplayEl.innerHTML = isPercentage ? `${(rangeSliderEl.value * 100).toFixed(1)}%`: rangeSliderEl.value
+
+    adjustSliderProgress(rangeSliderEl, sliderOptions, isPercentage)
 }
 
 const initGraph = async (cnetwork) => {
@@ -266,8 +271,16 @@ document.addEventListener('DOMContentLoaded', () => {
     rangeSliderEl.addEventListener('input', () => {
         const isPercentage = Number(percentageRadioEl.checked)
 
+        if (rangeSliderEl.value === rangeSliderEl.max) {
+            rangeSliderEl.classList.add('progress-max')
+        } else {
+            rangeSliderEl.classList.remove('progress-max')
+        }
+
         valueDisplayEl.innerHTML = isPercentage ? `${(rangeSliderEl.value * 100).toFixed(1)}%`: rangeSliderEl.value
         sliderOptions.value[isPercentage] = rangeSliderEl.value
+
+        adjustSliderProgress(rangeSliderEl, sliderOptions, isPercentage)
     }) 
 
     const submitBtnEl = document.getElementById('submitBtn')
