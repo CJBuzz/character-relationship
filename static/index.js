@@ -28,8 +28,6 @@ class CharacterNetwork {
         const primaryClrDark = styles.getPropertyValue('--color-primarydark').trim()
         const secondaryClr = styles.getPropertyValue('--color-secondary').trim();
 
-        const seed = Math.random()
-
         this.options = {
             height: `${Math.max(300, window.innerHeight-20)}px`,
             edges: {
@@ -84,14 +82,12 @@ class CharacterNetwork {
                 // }
             },
             layout: {
-                randomSeed: seed, // 0.7216629891520017
+                randomSeed: 0.7216629891520017
             },
             interaction: {
                 hover: true
             }
         };
-
-        console.log(seed)
 
         this.rgbRLow = Number(styles.getPropertyValue('--rgb-rlow').trim())
         this.rgbRHigh = Number(styles.getPropertyValue('--rgb-rhigh').trim())
